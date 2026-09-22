@@ -6,7 +6,8 @@ import { toast } from 'sonner'
 import { Loader2, AlertTriangle } from 'lucide-react'
 import { createMorbidityRecord } from '@/app/actions/morbidity'
 import { HEALTH_OUTCOMES } from '@/lib/constants'
-import { todayISO, morbidityRate, formatPct } from '@/lib/utils'
+import { todayISO, formatPct } from '@/lib/utils'
+import { morbidityRate } from '@/lib/calculations'
 
 interface Props {
   flocks: { id: string; flock_code: string; breed_strain: string | null }[]

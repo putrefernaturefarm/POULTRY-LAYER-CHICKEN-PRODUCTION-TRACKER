@@ -6,7 +6,8 @@ import { toast } from 'sonner'
 import { Loader2 } from 'lucide-react'
 import { createMortalityRecord } from '@/app/actions/mortality'
 import { DISPOSAL_METHODS } from '@/lib/constants'
-import { todayISO, mortalityRate, formatPct } from '@/lib/utils'
+import { todayISO, formatPct } from '@/lib/utils'
+import { mortalityRate } from '@/lib/calculations'
 
 interface Props {
   flocks: { id: string; flock_code: string }[]
