@@ -1,11 +1,12 @@
 import { requireUser } from '@/lib/session'
 import { getFarms } from '@/app/actions/farms'
-import { Home, Plus, MapPin } from 'lucide-react'
+import { Home, Plus, MapPin, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 
-export default async function FarmsPage() {
+export default async function FarmsPage({ searchParams }: { searchParams: Promise<{ setup?: string }> }) {
   await requireUser()
   const farms = await getFarms()
+  const { setup } = await searchParams
 
   return (
     <div className="p-4 md:p-6 max-w-4xl mx-auto space-y-6">
@@ -13,6 +14,13 @@ export default async function FarmsPage() {
         <h1 className="page-title flex items-center gap-2"><Home size={24} className="text-farm-green-600" /> Farm Profile</h1>
         <Link href="/farms/new" className="btn-primary"><Plus size={16} /> Add Farm</Link>
       </div>
+
+      {setup && (
+        <div className="flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-sm">
+          <AlertCircle size={18} className="shrink-0 mt-0.5" />
+          <p>You need to create a farm first before adding a {setup === 'house' ? 'poultry house' : setup}.</p>
+        </div>
+      )}
 
       {farms.length === 0 ? (
         <div className="card text-center py-12">
