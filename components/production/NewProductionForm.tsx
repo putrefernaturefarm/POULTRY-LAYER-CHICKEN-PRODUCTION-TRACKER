@@ -14,6 +14,15 @@ interface Props {
   houses: { id: string; name: string }[]
 }
 
+const SIZE_GRADES = [
+  { key: 'eggs_jumbo',       label: 'Jumbo' },
+  { key: 'eggs_extra_large', label: 'Extra Large' },
+  { key: 'eggs_large',       label: 'Large' },
+  { key: 'eggs_medium',      label: 'Medium' },
+  { key: 'eggs_small',       label: 'Small' },
+  { key: 'eggs_peewee',      label: 'Peewee' },
+]
+
 export default function NewProductionForm({ flocks, houses }: Props) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
@@ -22,15 +31,23 @@ export default function NewProductionForm({ flocks, houses }: Props) {
   const [total,   setTotal]   = useState('')
   const [good,    setGood]    = useState('')
 
-  const hdp     = henDayProduction(parseInt(total) || 0, parseInt(hens) || 0)
-  const goodPct = goodEggPct(parseInt(good) || 0, parseInt(total) || 0)
+  const [sizes, setSizes] = useState<Record<string, string>>({
+    eggs_jumbo: '', eggs_extra_large: '', eggs_large: '',
+    eggs_medium: '', eggs_small: '', eggs_peewee: '',
+  })
+
+  const hdp       = henDayProduction(parseInt(total) || 0, parseInt(hens) || 0)
+  const goodPct   = goodEggPct(parseInt(good) || 0, parseInt(total) || 0)
+  const sizesSum  = Object.values(sizes).reduce((s, v) => s + (parseInt(v) || 0), 0)
+  const goodNum   = parseInt(good) || 0
+  const sizesFilled = sizesSum > 0
+  const sizeMismatch = sizesFilled && goodNum > 0 && sizesSum !== goodNum
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError('')
-    const fd = new FormData(e.currentTarget)
-    const result = await createDailyProduction(fd)
+    const result = await createDailyProduction(new FormData(e.currentTarget))
     if (result?.error) {
       setError(result.error)
       toast.error(result.error)
@@ -50,6 +67,7 @@ export default function NewProductionForm({ flocks, houses }: Props) {
         </div>
       )}
 
+      {/* Flock + Date */}
       <div className="form-row">
         <div>
           <label>Flock *</label>
@@ -64,81 +82,45 @@ export default function NewProductionForm({ flocks, houses }: Props) {
         </div>
         <div>
           <label>Record Date *</label>
-          <input
-            name="record_date"
-            type="date"
-            className="input"
-            defaultValue={todayISO()}
-            max={todayISO()}
-            required
-          />
+          <input name="record_date" type="date" className="input" defaultValue={todayISO()} max={todayISO()} required />
         </div>
       </div>
 
+      {/* House */}
       <div>
         <label>Poultry House</label>
         <select name="house_id" className="select">
           <option value="">Select house...</option>
-          {houses.map(h => (
-            <option key={h.id} value={h.id}>{h.name}</option>
-          ))}
+          {houses.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
         </select>
       </div>
 
+      {/* Hens present */}
       <div>
         <label>Number of Hens Present *</label>
-        <input
-          name="hens_present"
-          type="number"
-          className="input"
-          placeholder="Hens in lay today"
-          min={0}
-          value={hens}
-          onChange={e => setHens(e.target.value)}
-          required
-        />
+        <input name="hens_present" type="number" className="input" placeholder="Hens in lay today"
+          min={0} value={hens} onChange={e => setHens(e.target.value)} required />
       </div>
 
+      {/* Egg Count */}
       <div>
         <p className="section-title mb-3">Egg Count</p>
         <div className="form-row">
           <div>
             <label>Total Eggs Collected *</label>
-            <input
-              name="total_eggs"
-              type="number"
-              className="input"
-              placeholder="All eggs"
-              min={0}
-              value={total}
-              onChange={e => setTotal(e.target.value)}
-              required
-            />
+            <input name="total_eggs" type="number" className="input" placeholder="All eggs"
+              min={0} value={total} onChange={e => setTotal(e.target.value)} required />
           </div>
           <div>
             <label>Good / Saleable Eggs *</label>
-            <input
-              name="good_eggs"
-              type="number"
-              className="input"
-              placeholder="Marketable eggs"
-              min={0}
-              value={good}
-              onChange={e => setGood(e.target.value)}
-              required
-            />
+            <input name="good_eggs" type="number" className="input" placeholder="Marketable eggs"
+              min={0} value={good} onChange={e => setGood(e.target.value)} required />
           </div>
         </div>
 
         {parseInt(hens) > 0 && parseInt(total) > 0 && (
-          <div
-            className="rounded-xl p-3 mt-3"
-            style={{ background: 'var(--green-bg)', border: '1px solid rgba(63,122,90,0.2)' }}
-          >
-            <p
-              className="text-xs font-semibold mb-1"
-              style={{ fontFamily: 'var(--font-mono, monospace)', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.08em' }}
-            >
+          <div className="rounded-xl p-3 mt-3" style={{ background: 'var(--green-bg)', border: '1px solid rgba(63,122,90,0.2)' }}>
+            <p className="text-xs font-semibold mb-1" style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
               Live Calculations
             </p>
             <div className="grid grid-cols-2 gap-2 text-sm">
@@ -155,32 +137,65 @@ export default function NewProductionForm({ flocks, houses }: Props) {
         )}
 
         <div className="form-row-3 mt-3">
-          <div>
-            <label>Cracked</label>
-            <input name="cracked_eggs" type="number" className="input" defaultValue={0} min={0} />
-          </div>
-          <div>
-            <label>Dirty</label>
-            <input name="dirty_eggs" type="number" className="input" defaultValue={0} min={0} />
-          </div>
-          <div>
-            <label>Broken</label>
-            <input name="broken_eggs" type="number" className="input" defaultValue={0} min={0} />
-          </div>
+          <div><label>Cracked</label><input name="cracked_eggs" type="number" className="input" defaultValue={0} min={0} /></div>
+          <div><label>Dirty</label><input name="dirty_eggs" type="number" className="input" defaultValue={0} min={0} /></div>
+          <div><label>Broken</label><input name="broken_eggs" type="number" className="input" defaultValue={0} min={0} /></div>
         </div>
-
         <div className="form-row mt-3">
-          <div>
-            <label>Rejected</label>
-            <input name="rejected_eggs" type="number" className="input" defaultValue={0} min={0} />
-          </div>
-          <div>
-            <label>Other Losses</label>
-            <input name="other_losses" type="number" className="input" defaultValue={0} min={0} />
-          </div>
+          <div><label>Rejected</label><input name="rejected_eggs" type="number" className="input" defaultValue={0} min={0} /></div>
+          <div><label>Other Losses</label><input name="other_losses" type="number" className="input" defaultValue={0} min={0} /></div>
         </div>
       </div>
 
+      {/* Egg Sizes */}
+      <div>
+        <p className="section-title mb-1">Egg Sizes</p>
+        <p className="text-xs mb-3" style={{ color: 'var(--ink-muted)' }}>
+          Optional — breakdown of good eggs by size grade
+        </p>
+
+        <div className="grid grid-cols-3 gap-3">
+          {SIZE_GRADES.map(({ key, label }) => (
+            <div key={key}>
+              <label>{label}</label>
+              <input
+                name={key}
+                type="number"
+                className="input"
+                min={0}
+                placeholder="0"
+                value={sizes[key]}
+                onChange={e => setSizes(prev => ({ ...prev, [key]: e.target.value }))}
+              />
+            </div>
+          ))}
+        </div>
+
+        {sizesFilled && (
+          <div
+            className="rounded-lg px-3 py-2 mt-3 flex items-center justify-between text-sm"
+            style={{
+              background: sizeMismatch ? 'rgba(200,60,60,0.07)' : 'var(--green-bg)',
+              border: `1px solid ${sizeMismatch ? 'rgba(200,60,60,0.3)' : 'rgba(63,122,90,0.2)'}`,
+            }}
+          >
+            <span style={{ color: 'var(--ink-soft)' }}>
+              Sizes total: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{sizesSum}</strong>
+            </span>
+            {sizeMismatch ? (
+              <span style={{ color: 'var(--red)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                ≠ {goodNum} good eggs
+              </span>
+            ) : (
+              <span style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                ✓ matches good eggs
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Notes */}
       <div>
         <label>Notes</label>
         <textarea name="notes" className="input" placeholder="Optional notes..." rows={2} />
@@ -191,9 +206,7 @@ export default function NewProductionForm({ flocks, houses }: Props) {
           {loading && <Loader2 size={16} className="animate-spin" />}
           {loading ? 'Saving...' : 'Save Production Record'}
         </button>
-        <button type="button" className="btn-ghost" onClick={() => router.back()}>
-          Cancel
-        </button>
+        <button type="button" className="btn-ghost" onClick={() => router.back()}>Cancel</button>
       </div>
     </form>
   )
