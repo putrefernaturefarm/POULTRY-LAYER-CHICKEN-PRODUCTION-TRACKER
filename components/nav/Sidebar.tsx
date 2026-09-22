@@ -43,6 +43,7 @@ const navGroups = [
       { href: '/vaccination', label: 'Vaccination',   icon: Syringe },
       { href: '/medication',  label: 'Medication',    icon: Pill },
       { href: '/culling',     label: 'Culling',       icon: Scissors },
+      { href: '/debeaking',   label: 'Debeaking',     icon: Scissors },
     ],
   },
   {

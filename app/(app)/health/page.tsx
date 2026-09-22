@@ -182,13 +182,14 @@ export default async function HealthPage() {
 
       {/* Quick links to related modules */}
       <div
-        className="rounded-xl p-4 grid grid-cols-2 md:grid-cols-4 gap-3"
+        className="rounded-xl p-4 grid grid-cols-2 md:grid-cols-5 gap-3"
         style={{ background: 'var(--paper-2)', border: '1px solid var(--line-strong)' }}
       >
         {[
           { href: '/vaccination', label: 'Vaccination', desc: 'Vaccine schedule' },
           { href: '/medication',  label: 'Medication',  desc: 'Treatment records' },
           { href: '/culling',     label: 'Culling',     desc: 'Culled birds' },
+          { href: '/debeaking',   label: 'Debeaking',   desc: 'Beak trimming' },
           { href: '/reports/health', label: 'Health Report', desc: '30-day summary' },
         ].map(({ href, label, desc }) => (
           <Link
