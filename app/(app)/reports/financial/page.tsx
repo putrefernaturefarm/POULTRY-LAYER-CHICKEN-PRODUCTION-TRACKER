@@ -4,6 +4,7 @@ import { getSales } from '@/app/actions/sales'
 import { formatCurrency, formatDate, cn } from '@/lib/utils'
 import { DollarSign, TrendingUp, TrendingDown } from 'lucide-react'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
+import DownloadCSVButton from '@/components/reports/DownloadCSVButton'
 
 export default async function FinancialReportPage() {
   await requireUser()
@@ -31,13 +32,38 @@ export default async function FinancialReportPage() {
   }, {})
   const catLabel = (v: string) => EXPENSE_CATEGORIES.find(c => c.value === v)?.label ?? v
 
+  const salesCSV = monthSal.map(s => ({
+    Date:     formatDate(s.sale_date),
+    Type:     s.sale_type,
+    Customer: s.customer_name ?? '',
+    Quantity: s.quantity ?? 0,
+    Unit:     s.unit ?? '',
+    Amount:   s.total_amount ?? 0,
+  }))
+
+  const expenseCSV = monthExp.map(e => ({
+    Date:     formatDate(e.expense_date),
+    Category: catLabel(e.category),
+    Description: e.description ?? '',
+    Amount:   e.amount,
+    Vendor:   e.vendor ?? '',
+  }))
+
+  const combinedCSV = [
+    ...salesCSV.map(r => ({ Record: 'Sale', ...r })),
+    ...expenseCSV.map(r => ({ Record: 'Expense', Date: r.Date, Type: r.Category, Customer: r.Description, Quantity: '', Unit: r.Vendor, Amount: r.Amount })),
+  ]
+
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="page-title flex items-center gap-2">
-          <DollarSign size={24} className="text-green-600" /> Financial Report
-        </h1>
-        <p className="text-sm text-gray-500 mt-0.5">{new Date().toLocaleString('en-PH', {month:'long',year:'numeric'})} — {farm.name}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="page-title flex items-center gap-2">
+            <DollarSign size={24} className="text-green-600" /> Financial Report
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">{new Date().toLocaleString('en-PH', {month:'long',year:'numeric'})} — {farm.name}</p>
+        </div>
+        <DownloadCSVButton data={combinedCSV} filename="financial-report" />
       </div>
 
       {/* Summary */}

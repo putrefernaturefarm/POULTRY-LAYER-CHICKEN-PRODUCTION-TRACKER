@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server'
 import { formatDate, formatPct, formatNumber, cn } from '@/lib/utils'
 import { AlertTriangle } from 'lucide-react'
 import MorbidityChart from '@/components/morbidity/MorbidityChart'
+import DownloadCSVButton from '@/components/reports/DownloadCSVButton'
 
 export default async function MorbidityReportPage() {
   await requireUser()
@@ -34,13 +35,28 @@ export default async function MorbidityReportPage() {
   rows.forEach(r => { byCondition[r.condition_disease] = (byCondition[r.condition_disease] || 0) + r.num_affected })
   const topConditions = Object.entries(byCondition).sort((a,b)=>b[1]-a[1]).slice(0,5)
 
+  const csvData = rows.map(r => ({
+    Date:             formatDate(r.record_date),
+    Flock:            (r.flocks as {flock_code:string})?.flock_code ?? '',
+    Condition:        r.condition_disease,
+    'Affected Birds': r.num_affected,
+    'Morbidity Rate': formatPct(r.morbidity_rate ?? 0),
+    Recovered:        r.num_recovered,
+    'Subsequently Died': r.num_subsequently_died,
+    'Culled':         r.num_culled,
+    Status:           r.is_resolved ? 'Resolved' : 'Active',
+  }))
+
   return (
     <div className="p-4 md:p-6 max-w-7xl mx-auto space-y-6">
-      <div>
-        <h1 className="page-title flex items-center gap-2">
-          <AlertTriangle size={24} className="text-amber-500" /> Morbidity Report
-        </h1>
-        <p className="text-sm text-gray-500 mt-0.5">Last 30 days — {farm.name}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h1 className="page-title flex items-center gap-2">
+            <AlertTriangle size={24} className="text-amber-500" /> Morbidity Report
+          </h1>
+          <p className="text-sm text-gray-500 mt-0.5">Last 30 days — {farm.name}</p>
+        </div>
+        <DownloadCSVButton data={csvData} filename="morbidity-report" />
       </div>
 
       <div className="alert-info text-sm">
