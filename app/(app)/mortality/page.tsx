@@ -1,7 +1,7 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
 import { getMortalityRecords, getMortalitySummary } from '@/app/actions/mortality'
 import { formatDate, formatPct, formatNumber, cn } from '@/lib/utils'
-import { Skull, Plus } from 'lucide-react'
+import { Skull, Plus, Pencil } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function MortalityPage() {
@@ -62,6 +62,7 @@ export default async function MortalityPage() {
                   <th>Mortality Rate</th>
                   <th>Cause</th>
                   <th>Disposal</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -78,6 +79,11 @@ export default async function MortalityPage() {
                     </td>
                     <td>{r.suspected_cause ?? '—'}</td>
                     <td>{r.disposal_method ?? '—'}</td>
+                    <td>
+                      <Link href={`/mortality/${r.id}/edit`} className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1">
+                        <Pencil size={11} /> Edit
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

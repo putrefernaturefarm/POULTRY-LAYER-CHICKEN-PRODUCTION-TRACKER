@@ -1,7 +1,7 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
 import { getSales, getSalesSummary } from '@/app/actions/sales'
 import { formatDate, formatCurrency, cn } from '@/lib/utils'
-import { ShoppingBag, Plus } from 'lucide-react'
+import { ShoppingBag, Plus, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { SALE_TYPES, EGG_GRADES } from '@/lib/constants'
 
@@ -57,7 +57,7 @@ export default async function SalesPage() {
         ) : (
           <div className="table-wrapper">
             <table>
-              <thead><tr><th>Date</th><th>Type</th><th>Customer</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Grade</th></tr></thead>
+              <thead><tr><th>Date</th><th>Type</th><th>Customer</th><th>Qty</th><th>Unit Price</th><th>Total</th><th>Grade</th><th>Actions</th></tr></thead>
               <tbody>
                 {sales.map(s => (
                   <tr key={s.id}>
@@ -68,6 +68,11 @@ export default async function SalesPage() {
                     <td>{formatCurrency(s.unit_price)}</td>
                     <td className="font-semibold text-green-700">{formatCurrency(s.total_amount ?? 0)}</td>
                     <td>{s.egg_grade ? gradeLabel(s.egg_grade) : '—'}</td>
+                    <td>
+                      <Link href={`/sales/${s.id}/edit`} className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1">
+                        <Pencil size={11} /> Edit
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

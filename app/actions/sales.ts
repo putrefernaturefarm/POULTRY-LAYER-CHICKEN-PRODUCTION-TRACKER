@@ -39,6 +39,35 @@ export async function createSale(fd: FormData) {
   redirect('/sales')
 }
 
+export async function updateSale(saleId: string, fd: FormData) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const qty       = parseFloat(String(fd.get('quantity') ?? '0'))
+  const unitPrice = parseFloat(String(fd.get('unit_price') ?? '0'))
+  const { error } = await supabase
+    .from('sales')
+    .update({
+      flock_id:         fd.get('flock_id') || null,
+      sale_date:        String(fd.get('sale_date') ?? ''),
+      sale_type:        String(fd.get('sale_type') ?? ''),
+      customer_name:    String(fd.get('customer_name') ?? ''),
+      customer_contact: String(fd.get('customer_contact') ?? ''),
+      quantity:         qty,
+      unit:             String(fd.get('unit') ?? ''),
+      unit_price:       unitPrice,
+      egg_grade:        fd.get('egg_grade') || null,
+      description:      String(fd.get('description') ?? ''),
+      receipt_no:       String(fd.get('receipt_no') ?? ''),
+      notes:            String(fd.get('notes') ?? ''),
+    })
+    .eq('id', saleId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/sales')
+  redirect('/sales')
+}
+
 export async function getSales(farmId: string, limit = 50) {
   const supabase = await createClient()
   const { data, error } = await supabase

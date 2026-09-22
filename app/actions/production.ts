@@ -55,6 +55,30 @@ export async function createDailyProduction(fd: FormData) {
   redirect('/production')
 }
 
+export async function updateProduction(recordId: string, fd: FormData) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('daily_production')
+    .update({
+      hens_present:  parseInt(String(fd.get('hens_present') ?? '0')),
+      total_eggs:    parseInt(String(fd.get('total_eggs') ?? '0')),
+      good_eggs:     parseInt(String(fd.get('good_eggs') ?? '0')),
+      cracked_eggs:  parseInt(String(fd.get('cracked_eggs') ?? '0')),
+      dirty_eggs:    parseInt(String(fd.get('dirty_eggs') ?? '0')),
+      broken_eggs:   parseInt(String(fd.get('broken_eggs') ?? '0')),
+      rejected_eggs: parseInt(String(fd.get('rejected_eggs') ?? '0')),
+      other_losses:  parseInt(String(fd.get('other_losses') ?? '0')),
+      notes:         String(fd.get('notes') ?? ''),
+    })
+    .eq('id', recordId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/production')
+  redirect('/production')
+}
+
 export async function getDailyProduction(farmId: string, limit = 30) {
   const supabase = await createClient()
   const { data, error } = await supabase

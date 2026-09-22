@@ -41,6 +41,33 @@ export async function createFlock(fd: FormData) {
   redirect('/flocks')
 }
 
+export async function updateFlock(flockId: string, fd: FormData) {
+  const user = await requireUser()
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('flocks')
+    .update({
+      flock_code:            String(fd.get('flock_code') ?? '').trim(),
+      batch_number:          String(fd.get('batch_number') ?? ''),
+      breed_strain:          String(fd.get('breed_strain') ?? ''),
+      source:                String(fd.get('source') ?? ''),
+      date_received:         String(fd.get('date_received') ?? ''),
+      house_id:              fd.get('house_id') || null,
+      initial_population:    parseInt(String(fd.get('initial_population') ?? '0')),
+      initial_males:         parseInt(String(fd.get('initial_males') ?? '0')),
+      initial_females:       parseInt(String(fd.get('initial_females') ?? '0')),
+      production_start_date: fd.get('production_start_date') || null,
+      expected_end_date:     fd.get('expected_end_date') || null,
+      status:                String(fd.get('status') ?? 'active'),
+      notes:                 String(fd.get('notes') ?? ''),
+    })
+    .eq('id', flockId)
+    .eq('farm_id', (await getCurrentFarm())?.id ?? '')
+  if (error) return { error: error.message }
+  revalidatePath('/flocks')
+  redirect('/flocks')
+}
+
 export async function updateFlockStatus(flockId: string, status: string) {
   await requireUser()
   const supabase = await createClient()

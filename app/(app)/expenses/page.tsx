@@ -1,7 +1,7 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
 import { getExpenses, getExpenseSummary } from '@/app/actions/expenses'
 import { formatDate, formatCurrency, cn } from '@/lib/utils'
-import { Receipt, Plus } from 'lucide-react'
+import { Receipt, Plus, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { EXPENSE_CATEGORIES } from '@/lib/constants'
 
@@ -49,7 +49,7 @@ export default async function ExpensesPage() {
         ) : (
           <div className="table-wrapper">
             <table>
-              <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Flock</th></tr></thead>
+              <thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Amount</th><th>Flock</th><th>Actions</th></tr></thead>
               <tbody>
                 {expenses.map(e => (
                   <tr key={e.id}>
@@ -58,6 +58,11 @@ export default async function ExpensesPage() {
                     <td>{e.description || '—'}</td>
                     <td className="font-semibold text-red-700">{formatCurrency(e.amount)}</td>
                     <td className="text-gray-400">{(e.flocks as {flock_code:string})?.flock_code ?? '—'}</td>
+                    <td>
+                      <Link href={`/expenses/${e.id}/edit`} className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1">
+                        <Pencil size={11} /> Edit
+                      </Link>
+                    </td>
                   </tr>
                 ))}
               </tbody>

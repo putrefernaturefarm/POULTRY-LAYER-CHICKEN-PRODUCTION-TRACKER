@@ -1,7 +1,7 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
 import { getDailyProduction } from '@/app/actions/production'
 import { formatDate, formatPct, formatNumber, cn } from '@/lib/utils'
-import { Egg, Plus } from 'lucide-react'
+import { Egg, Plus, Pencil } from 'lucide-react'
 import Link from 'next/link'
 
 export default async function ProductionPage() {
@@ -52,6 +52,7 @@ export default async function ProductionPage() {
                   <th>HDP %</th>
                   <th>Good %</th>
                   <th>Losses</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -76,6 +77,11 @@ export default async function ProductionPage() {
                       <td>{formatPct(r.good_egg_pct ?? 0)}</td>
                       <td className={cn(losses > 0 ? 'text-red-600' : 'text-gray-400')}>
                         {losses > 0 ? formatNumber(losses) : '—'}
+                      </td>
+                      <td>
+                        <Link href={`/production/${r.id}/edit`} className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1">
+                          <Pencil size={11} /> Edit
+                        </Link>
                       </td>
                     </tr>
                   )

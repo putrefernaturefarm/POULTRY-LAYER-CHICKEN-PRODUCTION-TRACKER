@@ -45,6 +45,29 @@ export async function createMortalityRecord(fd: FormData) {
   redirect('/mortality')
 }
 
+export async function updateMortality(recordId: string, fd: FormData) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('mortality_records')
+    .update({
+      record_date:       String(fd.get('record_date') ?? ''),
+      flock_age_weeks:   parseInt(String(fd.get('flock_age_weeks') ?? '0')) || null,
+      population_at_risk: parseInt(String(fd.get('population_at_risk') ?? '0')),
+      num_deaths:        parseInt(String(fd.get('num_deaths') ?? '0')),
+      suspected_cause:   String(fd.get('suspected_cause') ?? ''),
+      diagnostic_info:   String(fd.get('diagnostic_info') ?? ''),
+      disposal_method:   fd.get('disposal_method') || null,
+      notes:             String(fd.get('notes') ?? ''),
+    })
+    .eq('id', recordId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/mortality')
+  redirect('/mortality')
+}
+
 export async function getMortalityRecords(farmId: string, limit = 30) {
   const supabase = await createClient()
   const { data, error } = await supabase

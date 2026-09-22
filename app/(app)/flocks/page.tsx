@@ -55,10 +55,9 @@ export default async function FlocksPage() {
                     <td>{formatDate(f.date_received)}</td>
                     <td>{f.initial_population?.toLocaleString()}</td>
                     <td><span className={cn('badge', statusColor(f.status))}>{f.status}</span></td>
-                    <td>
-                      <Link href={`/flocks/${f.id}`} className="text-farm-green-600 hover:underline text-xs font-medium">
-                        View
-                      </Link>
+                    <td className="flex items-center gap-3">
+                      <Link href={`/flocks/${f.id}`} className="text-farm-green-600 hover:underline text-xs font-medium">View</Link>
+                      <Link href={`/flocks/${f.id}/edit`} className="text-blue-600 hover:underline text-xs font-medium">Edit</Link>
                     </td>
                   </tr>
                 ))}

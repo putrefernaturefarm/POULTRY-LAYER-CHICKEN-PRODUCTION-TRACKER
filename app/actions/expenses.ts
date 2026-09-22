@@ -33,6 +33,29 @@ export async function createExpense(fd: FormData) {
   redirect('/expenses')
 }
 
+export async function updateExpense(expenseId: string, fd: FormData) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('expenses')
+    .update({
+      flock_id:     fd.get('flock_id') || null,
+      expense_date: String(fd.get('expense_date') ?? ''),
+      category:     String(fd.get('category') ?? ''),
+      description:  String(fd.get('description') ?? ''),
+      amount:       parseFloat(String(fd.get('amount') ?? '0')),
+      supplier:     String(fd.get('supplier') ?? ''),
+      receipt_no:   String(fd.get('receipt_no') ?? ''),
+      notes:        String(fd.get('notes') ?? ''),
+    })
+    .eq('id', expenseId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/expenses')
+  redirect('/expenses')
+}
+
 export async function getExpenses(farmId: string, limit = 50) {
   const supabase = await createClient()
   const { data, error } = await supabase

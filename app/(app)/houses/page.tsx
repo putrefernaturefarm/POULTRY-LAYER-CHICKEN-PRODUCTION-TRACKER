@@ -1,6 +1,6 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
 import { createClient } from '@/lib/supabase/server'
-import { Layers, Plus } from 'lucide-react'
+import { Layers, Plus, Pencil } from 'lucide-react'
 import Link from 'next/link'
 import { HOUSING_TYPES } from '@/lib/constants'
 
@@ -47,6 +47,11 @@ export default async function HousesPage() {
               {h.housing_type && <p className="text-sm text-gray-500">{typLabel(h.housing_type)}</p>}
               {h.capacity && <p className="text-sm text-gray-500">Capacity: {h.capacity.toLocaleString()} birds</p>}
               {h.description && <p className="text-xs text-gray-400 mt-2">{h.description}</p>}
+              <div className="mt-3 pt-3 border-t border-gray-100">
+                <Link href={`/houses/${h.id}/edit`} className="btn-ghost text-xs flex items-center gap-1 w-fit">
+                  <Pencil size={12} /> Edit
+                </Link>
+              </div>
             </div>
           ))}
         </div>
