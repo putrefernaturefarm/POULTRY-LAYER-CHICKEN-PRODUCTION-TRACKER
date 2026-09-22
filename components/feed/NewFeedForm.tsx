@@ -12,7 +12,7 @@ interface Flock {
   id: string
   flock_code: string
   breed_strain?: string | null
-  current_stock?: number | null
+  initial_population?: number | null
 }
 
 interface House { id: string; name: string }
@@ -62,7 +62,7 @@ export default function NewFeedForm({ flocks, houses }: Props) {
   const flockObj = flocks.find(f => f.id === selectedFlock)
 
   useEffect(() => {
-    if (flockObj?.current_stock && hens === '') {
+    if (flockObj?.initial_population && hens === '') {
       setHens(String(flockObj.current_stock))
     }
   }, [selectedFlock])

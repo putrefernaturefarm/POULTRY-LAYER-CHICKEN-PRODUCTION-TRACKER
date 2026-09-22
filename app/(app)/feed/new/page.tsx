@@ -15,7 +15,7 @@ export default async function NewFeedPage() {
   const [{ data: flocks }, { data: houses }] = await Promise.all([
     supabase
       .from('flocks')
-      .select('id, flock_code, breed_strain, current_stock')
+      .select('id, flock_code, breed_strain, initial_population')
       .eq('farm_id', farm.id)
       .eq('status', 'active')
       .order('flock_code'),
