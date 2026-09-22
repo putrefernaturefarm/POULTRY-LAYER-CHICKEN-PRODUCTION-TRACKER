@@ -1,8 +1,10 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
 import { createClient } from '@/lib/supabase/server'
+import { deleteFlock } from '@/app/actions/flocks'
 import { formatDate, statusColor, cn } from '@/lib/utils'
 import { Bird, Plus } from 'lucide-react'
 import Link from 'next/link'
+import DeleteButton from '@/components/shared/DeleteButton'
 
 export default async function FlocksPage() {
   await requireUser()
@@ -55,9 +57,12 @@ export default async function FlocksPage() {
                     <td>{formatDate(f.date_received)}</td>
                     <td>{f.initial_population?.toLocaleString()}</td>
                     <td><span className={cn('badge', statusColor(f.status))}>{f.status}</span></td>
-                    <td className="flex items-center gap-3">
-                      <Link href={`/flocks/${f.id}`} className="text-farm-green-600 hover:underline text-xs font-medium">View</Link>
-                      <Link href={`/flocks/${f.id}/edit`} className="text-blue-600 hover:underline text-xs font-medium">Edit</Link>
+                    <td>
+                      <div className="flex items-center gap-3">
+                        <Link href={`/flocks/${f.id}`} className="text-xs font-medium" style={{ color: 'var(--green)' }}>View</Link>
+                        <Link href={`/flocks/${f.id}/edit`} className="text-xs font-medium" style={{ color: 'var(--green)' }}>Edit</Link>
+                        <DeleteButton action={deleteFlock.bind(null, f.id)} label="flock" />
+                      </div>
                     </td>
                   </tr>
                 ))}

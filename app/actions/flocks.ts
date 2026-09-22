@@ -68,6 +68,19 @@ export async function updateFlock(flockId: string, fd: FormData) {
   redirect('/flocks')
 }
 
+export async function deleteFlock(flockId: string) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('flocks')
+    .delete()
+    .eq('id', flockId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/flocks')
+}
+
 export async function updateFlockStatus(flockId: string, status: string) {
   await requireUser()
   const supabase = await createClient()
