@@ -13,7 +13,7 @@ export async function createExpense(fd: FormData) {
   const supabase = await createClient()
   const amount = parseFloat(String(fd.get('amount') ?? '0'))
 
-  if (amount < 0) return { error: 'Amount cannot be negative.' }
+  if (isNaN(amount) || amount < 0) return { error: 'Amount must be a valid positive number.' }
 
   const { error } = await supabase.from('expenses').insert({
     farm_id:      farm.id,
@@ -54,6 +54,19 @@ export async function updateExpense(expenseId: string, fd: FormData) {
   if (error) return { error: error.message }
   revalidatePath('/expenses')
   redirect('/expenses')
+}
+
+export async function deleteExpense(expenseId: string) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('expenses')
+    .delete()
+    .eq('id', expenseId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/expenses')
 }
 
 export async function getExpenses(farmId: string, limit = 50) {

@@ -91,6 +91,19 @@ export async function getDailyProduction(farmId: string, limit = 30) {
   return data ?? []
 }
 
+export async function deleteProduction(recordId: string) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('daily_production')
+    .delete()
+    .eq('id', recordId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/production')
+}
+
 export async function getProductionSummary(farmId: string) {
   const supabase = await createClient()
   const today = new Date().toISOString().split('T')[0]

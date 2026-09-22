@@ -1,17 +1,39 @@
 import type { Metadata } from 'next'
+import { Fraunces, Hanken_Grotesk, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'sonner'
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  variable: '--font-serif',
+  display: 'swap',
+})
+
+const hanken = Hanken_Grotesk({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-sans',
+  display: 'swap',
+})
+
+const jetbrains = JetBrains_Mono({
+  subsets: ['latin'],
+  weight: ['400', '500'],
+  variable: '--font-mono',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
   title: 'LayerPro — Poultry Layer Chicken Production Tracker',
   description: 'Professional poultry layer management system for flocks, eggs, feed, health, morbidity, mortality, and farm performance.',
   manifest: '/manifest.json',
-  themeColor: '#16a34a',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={`${fraunces.variable} ${hanken.variable} ${jetbrains.variable}`}>
       <body>
         {children}
         <Toaster richColors position="top-right" />

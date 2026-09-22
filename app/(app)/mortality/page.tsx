@@ -1,8 +1,9 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
-import { getMortalityRecords, getMortalitySummary } from '@/app/actions/mortality'
+import { getMortalityRecords, getMortalitySummary, deleteMortality } from '@/app/actions/mortality'
 import { formatDate, formatPct, formatNumber, cn } from '@/lib/utils'
 import { Skull, Plus, Pencil } from 'lucide-react'
 import Link from 'next/link'
+import DeleteButton from '@/components/shared/DeleteButton'
 
 export default async function MortalityPage() {
   await requireUser()
@@ -80,9 +81,12 @@ export default async function MortalityPage() {
                     <td>{r.suspected_cause ?? '—'}</td>
                     <td>{r.disposal_method ?? '—'}</td>
                     <td>
-                      <Link href={`/mortality/${r.id}/edit`} className="text-blue-600 hover:underline text-xs font-medium flex items-center gap-1">
-                        <Pencil size={11} /> Edit
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link href={`/mortality/${r.id}/edit`} className="text-xs font-medium flex items-center gap-1" style={{ color: 'var(--green)' }}>
+                          <Pencil size={11} /> Edit
+                        </Link>
+                        <DeleteButton action={deleteMortality.bind(null, r.id)} label="mortality record" />
+                      </div>
                     </td>
                   </tr>
                 ))}

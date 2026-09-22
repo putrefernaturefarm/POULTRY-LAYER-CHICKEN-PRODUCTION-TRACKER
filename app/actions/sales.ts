@@ -27,6 +27,7 @@ export async function createSale(fd: FormData) {
     quantity:         qty,
     unit:             String(fd.get('unit') ?? ''),
     unit_price:       unitPrice,
+    total_amount:     qty * unitPrice,
     egg_grade:        fd.get('egg_grade') || null,
     description:      String(fd.get('description') ?? ''),
     receipt_no:       String(fd.get('receipt_no') ?? ''),
@@ -56,6 +57,7 @@ export async function updateSale(saleId: string, fd: FormData) {
       quantity:         qty,
       unit:             String(fd.get('unit') ?? ''),
       unit_price:       unitPrice,
+      total_amount:     qty * unitPrice,
       egg_grade:        fd.get('egg_grade') || null,
       description:      String(fd.get('description') ?? ''),
       receipt_no:       String(fd.get('receipt_no') ?? ''),
@@ -66,6 +68,19 @@ export async function updateSale(saleId: string, fd: FormData) {
   if (error) return { error: error.message }
   revalidatePath('/sales')
   redirect('/sales')
+}
+
+export async function deleteSale(saleId: string) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('sales')
+    .delete()
+    .eq('id', saleId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/sales')
 }
 
 export async function getSales(farmId: string, limit = 50) {
@@ -86,17 +101,17 @@ export async function getSalesSummary(farmId: string) {
 
   const { data } = await supabase
     .from('sales')
-    .select('total_amount, sale_type, quantity')
+    .select('total_amount, sale_type, quantity, unit_price')
     .eq('farm_id', farmId)
     .gte('sale_date', monthStart)
 
-  const total     = (data ?? []).reduce((s, r) => s + (r.total_amount || 0), 0)
-  const eggSales  = (data ?? []).filter(r => r.sale_type === 'eggs')
-                        .reduce((s, r) => s + (r.total_amount || 0), 0)
-  const birdSales = (data ?? []).filter(r => r.sale_type !== 'eggs')
-                        .reduce((s, r) => s + (r.total_amount || 0), 0)
-  const eggQty    = (data ?? []).filter(r => r.sale_type === 'eggs')
-                        .reduce((s, r) => s + (r.quantity || 0), 0)
+  const amt = (r: { total_amount?: number | null; quantity?: number | null; unit_price?: number | null }) =>
+    r.total_amount ?? ((r.quantity ?? 0) * (r.unit_price ?? 0))
+
+  const total     = (data ?? []).reduce((s, r) => s + amt(r), 0)
+  const eggSales  = (data ?? []).filter(r => r.sale_type === 'eggs').reduce((s, r) => s + amt(r), 0)
+  const birdSales = (data ?? []).filter(r => r.sale_type !== 'eggs').reduce((s, r) => s + amt(r), 0)
+  const eggQty    = (data ?? []).filter(r => r.sale_type === 'eggs').reduce((s, r) => s + (r.quantity || 0), 0)
 
   return { total, eggSales, birdSales, eggQty }
 }

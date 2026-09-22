@@ -15,7 +15,7 @@ export default async function EditSalePage({ params }: { params: Promise<{ id: s
 
   const [{ data: sale }, { data: flocks }] = await Promise.all([
     supabase.from('sales').select('*').eq('id', id).eq('farm_id', farm.id).single(),
-    supabase.from('flocks').select('id, flock_code').eq('farm_id', farm.id).eq('status', 'active'),
+    supabase.from('flocks').select('id, flock_code').eq('farm_id', farm.id).eq('status', 'active').order('flock_code'),
   ])
 
   if (!sale) notFound()

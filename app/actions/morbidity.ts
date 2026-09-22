@@ -78,6 +78,19 @@ export async function updateMorbidityRecord(id: string, fd: FormData) {
   redirect('/morbidity')
 }
 
+export async function deleteMorbidity(recordId: string) {
+  const farm = await getCurrentFarm()
+  if (!farm) return { error: 'No active farm found.' }
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('morbidity_records')
+    .delete()
+    .eq('id', recordId)
+    .eq('farm_id', farm.id)
+  if (error) return { error: error.message }
+  revalidatePath('/morbidity')
+}
+
 export async function getMorbidityRecords(farmId: string, limit = 30) {
   const supabase = await createClient()
   const { data, error } = await supabase

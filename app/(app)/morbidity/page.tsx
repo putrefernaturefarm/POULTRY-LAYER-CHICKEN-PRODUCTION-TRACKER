@@ -1,8 +1,9 @@
 import { requireUser, getCurrentFarm } from '@/lib/session'
-import { getMorbidityRecords, getMorbiditySummary } from '@/app/actions/morbidity'
+import { getMorbidityRecords, getMorbiditySummary, deleteMorbidity } from '@/app/actions/morbidity'
 import { formatDate, formatPct, formatNumber, statusColor, cn } from '@/lib/utils'
 import { AlertTriangle, Plus, Activity, Heart, UserCheck, UserX } from 'lucide-react'
 import Link from 'next/link'
+import DeleteButton from '@/components/shared/DeleteButton'
 
 export default async function MorbidityPage() {
   await requireUser()
@@ -125,9 +126,12 @@ export default async function MorbidityPage() {
                       </span>
                     </td>
                     <td>
-                      <Link href={`/morbidity/${r.id}`} className="text-farm-green-600 hover:underline text-xs font-medium">
-                        Update
-                      </Link>
+                      <div className="flex items-center gap-3">
+                        <Link href={`/morbidity/${r.id}`} className="text-xs font-medium" style={{ color: 'var(--green)' }}>
+                          Update
+                        </Link>
+                        <DeleteButton action={deleteMorbidity.bind(null, r.id)} label="morbidity record" />
+                      </div>
                     </td>
                   </tr>
                 ))}

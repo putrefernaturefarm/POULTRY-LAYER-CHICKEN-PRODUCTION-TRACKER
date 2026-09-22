@@ -1,3 +1,17 @@
+export const FEED_TYPES = [
+  { value: 'layer_mash',    label: 'Layer Mash' },
+  { value: 'layer_pellet',  label: 'Layer Pellet' },
+  { value: 'layer_crumble', label: 'Layer Crumble' },
+  { value: 'pre_layer',     label: 'Pre-Layer Feed' },
+  { value: 'grower',        label: 'Grower Feed' },
+  { value: 'starter',       label: 'Chick Starter' },
+  { value: 'breeder',       label: 'Breeder Feed' },
+  { value: 'scratch',       label: 'Scratch Grains' },
+  { value: 'concentrate',   label: 'Feed Concentrate' },
+  { value: 'supplement',    label: 'Feed Supplement' },
+  { value: 'other',         label: 'Other' },
+] as const
+
 export const EXPENSE_CATEGORIES = [
   { value: 'feed',         label: 'Feed' },
   { value: 'vaccines',     label: 'Vaccines' },

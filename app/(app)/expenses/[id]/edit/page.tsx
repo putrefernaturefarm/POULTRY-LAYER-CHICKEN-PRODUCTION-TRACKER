@@ -15,7 +15,7 @@ export default async function EditExpensePage({ params }: { params: Promise<{ id
 
   const [{ data: expense }, { data: flocks }] = await Promise.all([
     supabase.from('expenses').select('*').eq('id', id).eq('farm_id', farm.id).single(),
-    supabase.from('flocks').select('id, flock_code').eq('farm_id', farm.id).eq('status', 'active'),
+    supabase.from('flocks').select('id, flock_code').eq('farm_id', farm.id).eq('status', 'active').order('flock_code'),
   ])
 
   if (!expense) notFound()

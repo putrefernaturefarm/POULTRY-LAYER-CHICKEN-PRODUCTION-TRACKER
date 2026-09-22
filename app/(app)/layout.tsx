@@ -17,7 +17,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     .single()
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden" style={{ background: 'transparent' }}>
       <Sidebar />
       <div className="flex-1 flex flex-col overflow-hidden">
         <TopBar userName={profile?.full_name ?? user.email} />
