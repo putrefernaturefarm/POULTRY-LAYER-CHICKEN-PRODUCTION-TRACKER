@@ -63,7 +63,7 @@ export default function NewFeedForm({ flocks, houses }: Props) {
 
   useEffect(() => {
     if (flockObj?.initial_population && hens === '') {
-      setHens(String(flockObj.current_stock))
+      setHens(String(flockObj.initial_population))
     }
   }, [selectedFlock])
 
