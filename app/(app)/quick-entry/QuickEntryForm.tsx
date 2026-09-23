@@ -130,16 +130,34 @@ export default function QuickEntryForm({ flocks, houses }: Props) {
       </div>
 
       {/* Progress */}
-      <div className="flex gap-1 mb-6">
+      <div className="flex gap-1 mb-2">
         {STEPS.slice(0, -1).map((s, i) => (
-          <div
+          <button
             key={s}
-            className="h-1.5 flex-1 rounded-full"
-            style={{
-              background: i < stepIdx ? 'var(--green)' : i === stepIdx ? 'var(--green-bg)' : 'var(--line)',
-              border: i === stepIdx ? '1px solid rgba(63,122,90,0.4)' : 'none',
-            }}
-          />
+            onClick={() => i <= stepIdx && setStep(s)}
+            className="flex-1 flex flex-col items-center gap-1 group"
+            style={{ background: 'none', border: 'none', padding: '0 0 4px', cursor: i <= stepIdx ? 'pointer' : 'default' }}
+          >
+            <div
+              className="h-1.5 w-full rounded-full transition-all"
+              style={{
+                background: i < stepIdx ? 'var(--green)' : i === stepIdx ? 'var(--green-bg)' : 'var(--line)',
+                border: i === stepIdx ? '1px solid rgba(63,122,90,0.4)' : 'none',
+              }}
+            />
+            <span
+              style={{
+                fontFamily: 'var(--font-mono, monospace)',
+                fontSize: '8px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.06em',
+                color: i === stepIdx ? 'var(--green)' : i < stepIdx ? 'var(--ink-soft)' : 'var(--line-strong)',
+                fontWeight: i === stepIdx ? 600 : 400,
+              }}
+            >
+              {s}
+            </span>
+          </button>
         ))}
       </div>
 
