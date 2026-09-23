@@ -54,6 +54,7 @@ export default function NewProductionForm({ flocks, houses }: Props) {
       setLoading(false)
     } else {
       toast.success('Production recorded.')
+      router.push('/production')
     }
   }
 

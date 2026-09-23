@@ -1,7 +1,6 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { requireUser, getCurrentFarm } from '@/lib/session'
 
@@ -58,7 +57,7 @@ export async function createDailyProduction(fd: FormData) {
   }
 
   revalidatePath('/production')
-  redirect('/production')
+  return { success: true }
 }
 
 export async function updateProduction(recordId: string, fd: FormData) {
@@ -88,7 +87,7 @@ export async function updateProduction(recordId: string, fd: FormData) {
     .eq('farm_id', farm.id)
   if (error) return { error: error.message }
   revalidatePath('/production')
-  redirect('/production')
+  return { success: true }
 }
 
 export async function getDailyProduction(farmId: string, limit = 30) {

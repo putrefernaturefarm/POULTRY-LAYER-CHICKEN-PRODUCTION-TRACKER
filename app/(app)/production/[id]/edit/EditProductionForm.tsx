@@ -21,7 +21,7 @@ export default function EditProductionForm({ record }: { record: Record }) {
     e.preventDefault(); setLoading(true); setError('')
     const result = await updateProduction(record.id, new FormData(e.currentTarget))
     if (result?.error) { setError(result.error); toast.error(result.error); setLoading(false) }
-    else toast.success('Production record updated.')
+    else { toast.success('Production record updated.'); router.push('/production') }
   }
 
   return (
