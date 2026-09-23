@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import { Loader2, Zap, Egg, UtensilsCrossed, AlertTriangle, Skull, ChevronRight } from 'lucide-react'
 import { todayISO, formatPct } from '@/lib/utils'
@@ -12,6 +13,13 @@ import { createMortalityRecord } from '@/app/actions/mortality'
 
 const STEPS = ['Eggs', 'Feed', 'Morbidity', 'Mortality', 'Done'] as const
 type Step = typeof STEPS[number]
+
+const STEP_HREF: Record<string, string> = {
+  Eggs:      '/production',
+  Feed:      '/feed',
+  Morbidity: '/morbidity',
+  Mortality:  '/mortality',
+}
 
 const SIZE_GRADES = [
   { key: 'eggs_jumbo',       label: 'Jumbo' },
@@ -132,20 +140,22 @@ export default function QuickEntryForm({ flocks, houses }: Props) {
       {/* Progress */}
       <div className="flex gap-1 mb-2">
         {STEPS.slice(0, -1).map((s, i) => (
-          <button
-            key={s}
-            onClick={() => i <= stepIdx && setStep(s)}
-            className="flex-1 flex flex-col items-center gap-1 group"
-            style={{ background: 'none', border: 'none', padding: '0 0 4px', cursor: i <= stepIdx ? 'pointer' : 'default' }}
-          >
-            <div
-              className="h-1.5 w-full rounded-full transition-all"
-              style={{
-                background: i < stepIdx ? 'var(--green)' : i === stepIdx ? 'var(--green-bg)' : 'var(--line)',
-                border: i === stepIdx ? '1px solid rgba(63,122,90,0.4)' : 'none',
-              }}
-            />
-            <span
+          <div key={s} className="flex-1 flex flex-col items-center gap-1">
+            <button
+              onClick={() => i <= stepIdx && setStep(s)}
+              className="w-full"
+              style={{ background: 'none', border: 'none', padding: 0, cursor: i <= stepIdx ? 'pointer' : 'default' }}
+            >
+              <div
+                className="h-1.5 w-full rounded-full transition-all"
+                style={{
+                  background: i < stepIdx ? 'var(--green)' : i === stepIdx ? 'var(--green-bg)' : 'var(--line)',
+                  border: i === stepIdx ? '1px solid rgba(63,122,90,0.4)' : 'none',
+                }}
+              />
+            </button>
+            <Link
+              href={STEP_HREF[s]}
               style={{
                 fontFamily: 'var(--font-mono, monospace)',
                 fontSize: '8px',
@@ -153,11 +163,12 @@ export default function QuickEntryForm({ flocks, houses }: Props) {
                 letterSpacing: '0.06em',
                 color: i === stepIdx ? 'var(--green)' : i < stepIdx ? 'var(--ink-soft)' : 'var(--line-strong)',
                 fontWeight: i === stepIdx ? 600 : 400,
+                textDecoration: 'none',
               }}
             >
               {s}
-            </span>
-          </button>
+            </Link>
+          </div>
         ))}
       </div>
 
