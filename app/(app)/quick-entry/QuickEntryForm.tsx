@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Loader2, Zap, Egg, UtensilsCrossed, AlertTriangle, Skull, ChevronRight } from 'lucide-react'
 import { todayISO, formatPct } from '@/lib/utils'
-import { henDayProduction, morbidityRate } from '@/lib/calculations'
+import { henDayProduction, morbidityRate, goodEggPct } from '@/lib/calculations'
 import { createDailyProduction } from '@/app/actions/production'
 import { createMorbidityRecord } from '@/app/actions/morbidity'
 import { createMortalityRecord } from '@/app/actions/mortality'
@@ -13,11 +13,21 @@ import { createMortalityRecord } from '@/app/actions/mortality'
 const STEPS = ['Eggs', 'Feed', 'Morbidity', 'Mortality', 'Done'] as const
 type Step = typeof STEPS[number]
 
+const SIZE_GRADES = [
+  { key: 'eggs_jumbo',       label: 'Jumbo' },
+  { key: 'eggs_extra_large', label: 'Extra Large' },
+  { key: 'eggs_large',       label: 'Large' },
+  { key: 'eggs_medium',      label: 'Medium' },
+  { key: 'eggs_small',       label: 'Small' },
+  { key: 'eggs_peewee',      label: 'Peewee' },
+]
+
 interface Props {
   flocks: { id: string; flock_code: string; breed_strain?: string | null }[]
+  houses: { id: string; name: string }[]
 }
 
-export default function QuickEntryForm({ flocks }: Props) {
+export default function QuickEntryForm({ flocks, houses }: Props) {
   const router = useRouter()
   const [step,    setStep]    = useState<Step>('Eggs')
   const [loading, setLoading] = useState(false)
@@ -25,15 +35,31 @@ export default function QuickEntryForm({ flocks }: Props) {
 
   const [date,     setDate]     = useState(todayISO())
   const [flockId,  setFlockId]  = useState('')
+  const [houseId,  setHouseId]  = useState('')
   const [hens,     setHens]     = useState('')
   const [eggs,     setEggs]     = useState('')
   const [goodEggs, setGoodEggs] = useState('')
+  const [cracked,  setCracked]  = useState('0')
+  const [dirty,    setDirty]    = useState('0')
+  const [broken,   setBroken]   = useState('0')
+  const [rejected, setRejected] = useState('0')
+  const [otherLoss,setOtherLoss]= useState('0')
+  const [notes,    setNotes]    = useState('')
+  const [sizes, setSizes] = useState<Record<string, string>>({
+    eggs_jumbo: '', eggs_extra_large: '', eggs_large: '',
+    eggs_medium: '', eggs_small: '', eggs_peewee: '',
+  })
 
   const [morb, setMorb] = useState({ affected: '', pop: '', condition: '' })
   const [mort, setMort] = useState({ deaths: '', pop: '', cause: '' })
 
-  const hdp = henDayProduction(parseInt(eggs) || 0, parseInt(hens) || 0)
-  const mr  = morbidityRate(parseInt(morb.affected) || 0, parseInt(morb.pop) || parseInt(hens) || 0)
+  const hdp      = henDayProduction(parseInt(eggs) || 0, parseInt(hens) || 0)
+  const goodPct  = goodEggPct(parseInt(goodEggs) || 0, parseInt(eggs) || 0)
+  const mr       = morbidityRate(parseInt(morb.affected) || 0, parseInt(morb.pop) || parseInt(hens) || 0)
+  const sizesSum = Object.values(sizes).reduce((s, v) => s + (parseInt(v) || 0), 0)
+  const goodNum  = parseInt(goodEggs) || 0
+  const sizesFilled   = sizesSum > 0
+  const sizeMismatch  = sizesFilled && goodNum > 0 && sizesSum !== goodNum
 
   async function saveEggs() {
     if (!flockId)  { setError('Select a flock.'); return }
@@ -42,11 +68,19 @@ export default function QuickEntryForm({ flocks }: Props) {
     if (!goodEggs) { setError('Enter good/saleable eggs.'); return }
     setLoading(true); setError('')
     const fd = new FormData()
-    fd.set('flock_id', flockId)
+    fd.set('flock_id',    flockId)
     fd.set('record_date', date)
     fd.set('hens_present', hens)
-    fd.set('total_eggs', eggs)
-    fd.set('good_eggs', goodEggs)
+    fd.set('total_eggs',  eggs)
+    fd.set('good_eggs',   goodEggs)
+    fd.set('cracked_eggs',  cracked)
+    fd.set('dirty_eggs',    dirty)
+    fd.set('broken_eggs',   broken)
+    fd.set('rejected_eggs', rejected)
+    fd.set('other_losses',  otherLoss)
+    fd.set('notes', notes)
+    if (houseId) fd.set('house_id', houseId)
+    SIZE_GRADES.forEach(({ key }) => fd.set(key, sizes[key] || '0'))
     const r = await createDailyProduction(fd)
     setLoading(false)
     if (r?.error) { toast.error(r.error); setError(r.error); return }
@@ -119,14 +153,13 @@ export default function QuickEntryForm({ flocks }: Props) {
 
       {/* Step: Eggs */}
       {step === 'Eggs' && (
-        <>
-          <div className="card space-y-4 mb-4">
-            <p className="section-title">Select Flock & Date</p>
-            <div>
-              <label>Date</label>
-              <input type="date" className="input" value={date}
-                onChange={e => setDate(e.target.value)} max={todayISO()} />
-            </div>
+        <div className="card space-y-5">
+          <p className="font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-serif, serif)' }}>
+            <Egg size={18} style={{ color: 'var(--amber)' }} /> Egg Production
+          </p>
+
+          {/* Flock + Date */}
+          <div className="form-row">
             <div>
               <label>Flock *</label>
               <select className="select" value={flockId} onChange={e => setFlockId(e.target.value)} required>
@@ -138,40 +171,131 @@ export default function QuickEntryForm({ flocks }: Props) {
                 ))}
               </select>
             </div>
+            <div>
+              <label>Record Date *</label>
+              <input type="date" className="input" value={date}
+                onChange={e => setDate(e.target.value)} max={todayISO()} />
+            </div>
           </div>
 
-          <div className="card space-y-4">
-            <p className="font-semibold flex items-center gap-2" style={{ fontFamily: 'var(--font-serif, serif)' }}>
-              <Egg size={18} style={{ color: 'var(--amber)' }} /> Egg Production
-            </p>
-            <div>
-              <label>Hens Present</label>
-              <input type="number" className="input" value={hens}
-                onChange={e => setHens(e.target.value)} placeholder="Number of hens today" min={0} />
-            </div>
+          {/* House */}
+          <div>
+            <label>Poultry House</label>
+            <select className="select" value={houseId} onChange={e => setHouseId(e.target.value)}>
+              <option value="">Select house...</option>
+              {houses.map(h => <option key={h.id} value={h.id}>{h.name}</option>)}
+            </select>
+          </div>
+
+          {/* Hens Present */}
+          <div>
+            <label>Number of Hens Present *</label>
+            <input type="number" className="input" value={hens}
+              onChange={e => setHens(e.target.value)} placeholder="Hens in lay today" min={0} />
+          </div>
+
+          {/* Egg Count */}
+          <div>
+            <p className="section-title mb-3">Egg Count</p>
             <div className="form-row">
               <div>
-                <label>Total Eggs</label>
+                <label>Total Eggs Collected *</label>
                 <input type="number" className="input" value={eggs}
                   onChange={e => setEggs(e.target.value)} placeholder="All eggs" min={0} />
               </div>
               <div>
-                <label>Good Eggs</label>
+                <label>Good / Saleable Eggs *</label>
                 <input type="number" className="input" value={goodEggs}
-                  onChange={e => setGoodEggs(e.target.value)} placeholder="Saleable eggs" min={0} />
+                  onChange={e => setGoodEggs(e.target.value)} placeholder="Marketable eggs" min={0} />
               </div>
             </div>
+
             {parseInt(hens) > 0 && parseInt(eggs) > 0 && (
-              <div className="rounded-xl p-2.5 text-sm" style={{ background: 'var(--amber-bg)', color: 'var(--amber)' }}>
-                HDP: <strong>{formatPct(hdp)}</strong>
+              <div className="rounded-xl p-3 mt-3" style={{ background: 'var(--green-bg)', border: '1px solid rgba(63,122,90,0.2)' }}>
+                <p className="text-xs font-semibold mb-1" style={{ fontFamily: 'var(--font-mono)', color: 'var(--green)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  Live Calculations
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span style={{ color: 'var(--ink-soft)' }}>Hen-Day Production: </span>
+                    <span className="font-bold" style={{ color: 'var(--green)' }}>{formatPct(hdp)}</span>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--ink-soft)' }}>Good Egg %: </span>
+                    <span className="font-bold" style={{ color: 'var(--green)' }}>{formatPct(goodPct)}</span>
+                  </div>
+                </div>
               </div>
             )}
-            <button className="btn-primary w-full" onClick={saveEggs} disabled={loading || flocks.length === 0}>
-              {loading ? <Loader2 size={16} className="animate-spin" /> : null}
-              {loading ? 'Saving...' : 'Save Eggs'} <ChevronRight size={16} />
-            </button>
+
+            <div className="form-row-3 mt-3">
+              <div><label>Cracked</label><input type="number" className="input" value={cracked} onChange={e => setCracked(e.target.value)} min={0} /></div>
+              <div><label>Dirty</label><input type="number" className="input" value={dirty} onChange={e => setDirty(e.target.value)} min={0} /></div>
+              <div><label>Broken</label><input type="number" className="input" value={broken} onChange={e => setBroken(e.target.value)} min={0} /></div>
+            </div>
+            <div className="form-row mt-3">
+              <div><label>Rejected</label><input type="number" className="input" value={rejected} onChange={e => setRejected(e.target.value)} min={0} /></div>
+              <div><label>Other Losses</label><input type="number" className="input" value={otherLoss} onChange={e => setOtherLoss(e.target.value)} min={0} /></div>
+            </div>
           </div>
-        </>
+
+          {/* Egg Sizes */}
+          <div>
+            <p className="section-title mb-1">Egg Sizes</p>
+            <p className="text-xs mb-3" style={{ color: 'var(--ink-muted)' }}>
+              Optional — breakdown of good eggs by size grade
+            </p>
+            <div className="grid grid-cols-3 gap-3">
+              {SIZE_GRADES.map(({ key, label }) => (
+                <div key={key}>
+                  <label>{label}</label>
+                  <input
+                    type="number"
+                    className="input"
+                    min={0}
+                    placeholder="0"
+                    value={sizes[key]}
+                    onChange={e => setSizes(prev => ({ ...prev, [key]: e.target.value }))}
+                  />
+                </div>
+              ))}
+            </div>
+            {sizesFilled && (
+              <div
+                className="rounded-lg px-3 py-2 mt-3 flex items-center justify-between text-sm"
+                style={{
+                  background: sizeMismatch ? 'rgba(200,60,60,0.07)' : 'var(--green-bg)',
+                  border: `1px solid ${sizeMismatch ? 'rgba(200,60,60,0.3)' : 'rgba(63,122,90,0.2)'}`,
+                }}
+              >
+                <span style={{ color: 'var(--ink-soft)' }}>
+                  Sizes total: <strong style={{ fontFamily: 'var(--font-mono)', color: 'var(--ink)' }}>{sizesSum}</strong>
+                </span>
+                {sizeMismatch ? (
+                  <span style={{ color: 'var(--red)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                    ≠ {goodNum} good eggs
+                  </span>
+                ) : (
+                  <span style={{ color: 'var(--green)', fontFamily: 'var(--font-mono)', fontSize: '0.75rem' }}>
+                    ✓ matches good eggs
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label>Notes</label>
+            <textarea className="input" placeholder="Optional notes..." rows={2}
+              value={notes} onChange={e => setNotes(e.target.value)} />
+          </div>
+
+          <button className="btn-primary w-full" onClick={saveEggs} disabled={loading || flocks.length === 0}>
+            {loading ? <Loader2 size={16} className="animate-spin" /> : null}
+            {loading ? 'Saving...' : 'Save Eggs'} <ChevronRight size={16} />
+          </button>
+        </div>
       )}
 
       {/* Step: Feed */}
